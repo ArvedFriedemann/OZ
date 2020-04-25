@@ -1,0 +1,43 @@
+Optimal Solvers using Andorra Style Languages
+
+Logical languages are the highest when it comes to expressivity. The main problem of their evaluation is the possible nondeterminism. Andorra-Style evaluation tackles the problem by evaluating disjunctions with only one possibility directly and freezing computation if needed until the choice eventually becomes deterministic. Using this principle, logical languages can be evaluated deterministically without loosing the expressive power of a logical language.
+
+In this research, this expressive power is used to describe a practical solution to a fundamental problem in computer science: self improving solving systems. The general idea of how this works looks the following:
+Assume we can quantify over terms in a language, with a predicate (Term T). Furthermore, we assume we can natively evaluate this term in the basic engine that our language runs on, using (Eval T). In logical terms, this would state that given a term v containing variables, and a term F of our language with its term representation <F> (so that (Term <F>) holds), then v has a model given F iff it has a model given (Eval <F>).
+A Solver is now a term M with the variables ipt and hasSol, such that for an input term I holds, that (Eval (M and ipt=I)) (so, evaluate the solver with its input variable assigned) either Andorra-deduces a model (so, a full assignment of the variables) for I and hasSol=true if it exists or hasSol=false.
+The interesting part is that this solver might not be known and needs to be deduced as well. In other languages, one would need to build a handmade solver first to solve how the automatically deduced solver would look like, but this of course will always limit the construction speed of the automatically deduced solver to the speed of the handmade solver. The idea is now not to create a solver twice. The cool thing about logical languages is that we can use terms that haven't been fully deduced yet. So let's use the automatically deduced solver to automatically deduce the solver.
+Assume setting the input variable ipt of M to I always results in the term M (M and I). Then the solver gets two tasks. Figure out the input, and figure out the own implementation. This means that every time something can be deduced about the solver directly speeds up the search for the model of I and even the solver M itself, which in turn can trigger new deductions and so on.
+Just plainly stated like this, there are very likely to be no deductions whatsoever. The reason for this is the high degree of nondeterminism. This is not necessarily bad. The andorra style evaluation can already be used as a really strong form of bookkeeping for which disjunctions are still open, so the solver can be created interactively. Setting the solver to any deterministically running solver can already resolve the problem input I, and when we additionally define some optimality criterion on M, even the first contradiction of where it has room for improvement might be deduced.
+
+Further development of the technique is now split into three parts. The first part is the proof theoretic formulation of how to constrain the solving term to solve consistent and complete. Don't worry, Goedel's incompleteness is not a problem here. The second part is to constrain the solver to be optimal. There in fact is a formulation that can ensure the solver is doing "nothing stupid". So while it might not always do the optimal search, it is at least prohibited to ignore facts it deduced about how search can be made faster. And the third part is to use the former bits to ensure that the whole process actually unit propagates with as little interaction (or randomness) as possible. This step will ensure the practicality of the approach.
+
+Chapter: Preliminaries: The Language and its Quoted Terms
+%describe here how
+
+
+
+Chapter: Consistency and Completeness
+
+First thing to be done is to constrain the solver term to be consistent and complete. This can be done by creating a proof that these constraints hold universally.
+An exist statement is easily encoded with a variable, as this is the inherit semantics of the language. Universal statements are slightly harder, because they require an already complete solver M. But once we have that, we can state the statement "forall X it holds that (P X)" as "(Complete M) and M <M (P X) false> false". This will be declared as a predicate (Forall X P M).
+Completeness can be stated by induction over the depth of disjunctions. Iff it holds that (M X1 false) and ... and (M Xn false), it should also hold that (M (X1 or ... or Xn) false), whereas a disjunction free terms validity should be deduced by a (simulated) form of unit propagation. A corner case here are existentially quantified variables. They are handled as disjunctions in disguise.
+%TODO: explicit disjunctions really needed? For solvers, unassigned variables kinda do the job...
+An unassigned variable will be transformed into a disjunction over its possible constructors. Those will be determined from the term the variable is used in. Important: This might very well not terminate in the sense that for variables that cannot be deduced by propagation, there would need to be a search over all values that might not find an ending. In that case, the solver is kind of "lazily complete", so its construction never terminates. It can still be used in the parts where the proof succeeded.
+%TODO: Create a more relative predicate of "this solver is complete for this class of terms"
+
+Consistency follows from a proof that the andorra evaluation is upheld. In that case, it is made sure that it deduces at least as much as would be deduced by normal computation and that it can also deduce its failures. In order to create this proof, a simulation of the Andorra principle needs to be formulated and the inclusion is proven by induction.
+
+
+Subchapter: Details on Simulating Andorra Evaluation
+
+In order to constrain the Solver M to assign all variables in a term T (or at least give proof that it can), it needs to be deduceable which variables will be deduced by the andorra evaluation. This can be done with a predicate that takes T and deduces an assignments of its variables to their state of whether they will be propagated or not. This is achieved by simulating the andorra evaluation on T to andorra deduce the hidden state of the propagation engine. This will result in the propagation happening twice, but at least it can be accessed what variables will be deduced at some point. If a variable is not being deduced, one can be sure that it will need to be split over. Thinking this further, the same method can be used to deduce how long it will take to get a certain value. This is important to make right choices when splitting. Of course, only the fastest branch should be evaluated (if that information propagates faster than trying out an assignment). On the long run this could be used to synthesize optimal deterministic agents for a concurrent system, but let's stay at one step at a time.
+
+
+Chapter: Optimality
+%define the deduction of speed information on the search with the current solver. Maybe even go into unfinished solvers that do some equivalent of statistics to deal with deterministic choices under too little information
+
+Chapter: Implications to Propagation
+%Just wrap up what the previous chapters mean. It should follow from optimality that the solver does not do anything stupid. Maybe even define that interaction only happens when there is a payoff against randomness, e.g. only when the unknown search space is so big that randomly cruising it is likely not to be feasible.
+
+Chapter: Outlook Natural Language Interface
+%describe how it could be achieved that the system learns a language and uses it as an interface

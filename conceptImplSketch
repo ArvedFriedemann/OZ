@@ -1,0 +1,30 @@
+or X A in Term (var X A)  %All terms are already assignable
+[] X Y in Term (X :=: Y) , Term X , Term Y
+[] X Y Res A in Term (X :==: Y (var Res A)) , Term X , Term Y %Maybe needed? unsure.
+[] X Y in Term (X appl Y) , Term X , Term Y
+[] X E A in Term (bind X E) , Term E , (ForceEq X A) %ForceEQ TODO (force contents of same variables to be equal)
+end
+%TODO: make and and or and whatnot to special terms. Maybe even equality?
+
+
+or X A in Eval (var X A)
+[] X Y in Eval (X :=: Y) , X=Y %TODO: is that correct? the terms need to be equal under their assignments...
+[] ... %Nothing interesting happening for the other cases. It's really just getting the equalities through.
+
+
+Copy T T' %TODO: Copy a term to be re-assignable.
+
+Propagate T T' K %TODO: a method to get the andorra evaluation tree K. T' contains the propagated tree, but variables might be assigned "unassigned" if andorra terminates
+%This should give, for every variable, the information about whether it will be deduced (and when). The propagation needs to be implemented such that it is certain that this information always eventually propagates (if the current full term is known). Furthermore, information about conflicts is propagated, which could be used to resolve them. 
+
+PropagateAll T Res %determines whether all variables have been propagated
+
+%TODO: This would literally propagate all variables. But only the information that it CAN needs to be deduced. Can be done with some lazyness trick
+
+Forall X P M %some statement using a complete solver M
+
+Complete M %The proof that, if the solver were executed on any term, it could deduce falsehood correctly
+Consistent M %Proof that M deduces at least the andorra propagated variables
+
+%BIG TODO: There needs to be a termination token or whatnot. for proofs, once termination has been proven, the proof does not need further evaluation, unless the proof object is used somewhere. Only then can lazy proofs (a.k.a. induction) actually be made!
+%Deduce solving times. Start with andorra. Simulate andorra and deduce the size of the derivation tree. If it can be deduced that the size only depends on the size of the input, it is guaranteed to terminate.
